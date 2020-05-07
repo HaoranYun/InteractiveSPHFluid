@@ -2,25 +2,24 @@ import controlP5.*;
 ControlP5 cp5;
 Slider abc;
 
-float G = -0.05;
+float G = -0.01; // -0.05
 float NeighborRadius = 30;
 float density = 1000;
-float space = 10;
+float space = 10; // 10 
 float dt = 0.02;
-float restDensity = 3;
+float restDensity = 10; // 3
 float k = space/1000;
 float k_near = k *10;
 float Viscosity = 0.05;
 float beta = 0.000;
 
 
-int N = 100;
+
 ArrayList<Particle>  fluid = new ArrayList<Particle>();
 
 PShape groupShape;
 
 float kernelRadius = 0.06;
-float KERNEL_POLY6_COEF, KERNEL_SPIKY_GRAD_COEF,KERNEL_VISCO_LAP_COEF;
 
 float[] rho;
 float[] rho_near;
@@ -33,80 +32,131 @@ ArrayList<PVector> tempForce = new ArrayList<PVector>();
 
 
 
+PImage tapImg;
+color tapCol = color(255,255,255);
+
+GUI gui;
+float mass = 5;
+float flux = 4;
+
+boolean TAPON = false;
+Board bd;
+int hashN = 200;
+ArrayList<Particle>[] hashTable;
+int iter = 0;
+
+
+int p0 = 5801;
+int p1 = 2503;
 void setup(){
   
-  size(800,500,P3D);
+  size(800,500,P2D);
   cp5 = new ControlP5(this);
-  //cp5.addSlider("Viscosity")
-  //   .setPosition(100,50)
-  //   .setRange(0,0.5)
-  //   .setSliderMode(Slider.FLEXIBLE)
-  //   ;
-  //cp5.getController("Visocosity").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-  //cp5.getController("Visocosity").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-  
 
+  tapImg = loadImage("tap.png");
+  
+  gui = new GUI();
+  bd = new Board(width-200,200);
+  
   int count = 0;
   groupShape = createShape(PShape.GROUP);
   
-  for(int i = 200; i < 400; i += space*1.2){
-    for(int j = 200; j < 400; j += space*1.2){
-      count ++;
-      Particle curr = new Particle(i,j);  
-      fluid.add(curr);
-      groupShape.addChild(curr.particleShape);
-    }
+  resetWaterBall();
+ 
+  hashTable= new ArrayList[hashN];
+  for(int i = 0; i < hashN; i ++){
+    hashTable[i] = new ArrayList<Particle>();
   }
-  N = count;
-  
-  
-  //rho = new float[N];
-  //rho_near = new float[N];
-  //press = new float[N];
-  //press_near = new float[N];
-  
-  //color B = color(50,150,200);
-  //PShape test = createShape(ELLIPSE,width/2,height/2,30,30);
-  //test.setFill(B);
-  //groupShape.addChild(test);
   
 }
 
 
 
 void draw(){
-  
+  iter ++;
   
   background(0);
+ 
+  for(int i = 0; i < hashN; i ++){
+    hashTable[i].clear();
+  }
   
   if(!pause){
-  for(int i = 0; i < N; i++){
-    fluid.get(i).Update();
+    for(int i = 0; i < fluid.size(); i++){
+      fluid.get(i).Update();
+    }
+  
+    findNeighbors();
+    GetPressure();
+    GetPressureForce();
+    GetViscosity();
   }
   
-  findNeighbors();
-  GetPressure();
-  GetPressureForce();
-  GetViscosity();
+
+  
+  
+  fill(tapCol);
+  noStroke();
+  
+  if(gui.blobCheckBox.isChecked){
+    drawBlob();
   }
-  fill(color(100,200,100));
-  stroke(color(60,200,100));
-  shape(groupShape);
+  else {
+    shape(groupShape);
+  }
+  
   
   rect(width-50+space,50,space,height-100 + 2*space);
   rect(0 + 50 -2*space,50,space,height-100 + 2*space);
   rect(0 + 50 -2*space,height - 50 + space ,width-50-2*space,space);
+  rect(50-2*space,40,35,10);
+
+
+  beginShape();
+  texture(tapImg);
+  vertex(width -120, 0, 0, 0);
+  vertex(width-30, 0,  tapImg.width, 0);
+  vertex(width -30, 90, tapImg.width, tapImg.height);
+  vertex(width - 120, 90, 0, tapImg.height);
+  endShape();
+  
+   //40 40 1.5
+  if(TAPON && iter%30 == 0){
+   for(int i = 0; i < 2; i ++){
+    for(int j = 0; j < flux/2; j ++){
+      float x = width -120 + i*space*1.2;
+      float y = 90 + j*space*1.2;
+      Particle curr = new Particle(x,y);  
+      fluid.add(curr);
+      groupShape.addChild(curr.particleShape);
+      curr.newAdded = true;
+    }
+   }
+  }
+  
+  // if particle number is over flow 
+  
+  if(fluid.size() > 1500){
+    TAPON = false;
+    gui.tapCheckBox.isChecked = false;
+  }
   
 
-  rect(10,10,50,60);
+  bd.Update();
+  
+  gui.Update();
+  
+  // drag by mouse 
+  stroke(tapCol);
+  for(int i = 0; i <tempParticles.size(); i++){ 
+    line(mouseX,mouseY,tempParticles.get(i).pos.x,tempParticles.get(i).pos.y);
+  }
+  
+  //save images
+  if(gui.recordCheckBox.isChecked)saveFrame("output2/test_####.png");
 }
 
-void initializeParams() {
-  KERNEL_POLY6_COEF = 4.0 / (PI * sq(kernelRadius));
-  KERNEL_SPIKY_GRAD_COEF = -30.0 / (PI * pow(kernelRadius, 3.0));
-  KERNEL_VISCO_LAP_COEF = 20.0 / (3.0 * PI * pow(kernelRadius, 4.0));
-  //calcParticleMass();
-}
+
 
 
 
@@ -114,7 +164,7 @@ void findNeighbors(){
   float d = 0;
   float dn = 0;
   float len, q, q2, q3;
-  for(int i = 0; i < N; i++ ){
+  for(int i = 0; i < fluid.size(); i++ ){
     d = 0;
     dn = 0;
     Particle curr = fluid.get(i);
@@ -155,7 +205,7 @@ void GetDensity(){
 }
 
 void GetPressure(){
-  for(int i = 0; i< N; i ++){
+  for(int i = 0; i< fluid.size(); i ++){
       Particle curr = fluid.get(i);
       curr.pressure = k*(curr.rho - restDensity);
       curr.pressure_near = k_near * curr.rho_near;
@@ -164,8 +214,11 @@ void GetPressure(){
   
 }
 
+
+
+
 void GetPressureForce(){
-   for(int i = 0; i< N; i ++){
+   for(int i = 0; i< fluid.size(); i ++){
     Particle curr = fluid.get(i);   
     curr.pressure = k*(curr.rho - restDensity);
     curr.pressure_near = k_near * curr.rho_near;
@@ -192,7 +245,7 @@ void GetPressureForce(){
 
 
 void GetViscosity(){
-  for(int i = 0; i< N; i ++){
+  for(int i = 0; i< fluid.size(); i ++){
     Particle curr = fluid.get(i);   
     int neighborSize = curr.neighbors.size();
       for (int j = 0; j < neighborSize; j ++){
@@ -223,17 +276,53 @@ void UpdateFluid(){
 void findParticleInRange(float x, float y){
   tempParticles.clear();
   PVector mouse = new PVector(x,y);
-  for(int i = 0; i < N; i ++){
+  for(int i = 0; i < fluid.size(); i ++){
     Particle curr = fluid.get(i);
     PVector dirc = PVector.sub(mouse,curr.pos);
     float dist = dirc.mag();
     if(dist < 100){
       tempParticles.add(curr);
-      line(x,y,curr.pos.x,curr.pos.y);
+      
       curr.force.add(dirc.mult(100-dist).limit(0.1));
     }
   }
   
+}
+
+
+
+void drawBlob(){
+  loadPixels();
+  for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
+      int index = x + y * width;
+      float sum = 0;
+      for (Particle p : fluid) {
+        float d = dist(x, y, p.pos.x, p.pos.y);
+        if(d < 1.5 * space){
+          sum += 80*space/d;;
+        }
+      }
+      pixels[index] = color(0, 0, sum);
+    }
+  }
+
+  updatePixels();
+}
+
+void resetWaterBall(){
+  for(int i = 200; i < 400; i += space*1.2){
+    for(int j = 200; j < 400; j += space*1.2){
+      Particle curr = new Particle(i,j);  
+      fluid.add(curr);
+      groupShape.addChild(curr.particleShape);
+    }
+  }
+}
+
+int hashBucket(float i, float j){
+  int ij = (int)(i / space * p0 + j /space * p1);
+  return ij % hashN;
 }
 
 void keyPressed(){
@@ -241,6 +330,14 @@ void keyPressed(){
     pause = !pause;
   }
 }
+
+void mouseReleased(){
+  gui.tapCheckBox.released();
+  gui.recordCheckBox.released();
+  gui.blobCheckBox.released();
+  tempParticles.clear();
+}
+
 
 void mouseDragged(){
   findParticleInRange(mouseX, mouseY);

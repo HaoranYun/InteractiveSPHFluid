@@ -12,18 +12,18 @@ Slider abc;
 float boxW = 20;
 
 float G = -0.5;
-float space = 2;
+float space = 1;
 float NeighborRadius = 1.5*space;
 //float density = 1000; ÷\
 float dt = 0.02;
-float restDensity = 15;
+float restDensity = 5;
 float k = space/1000;
 float k_near = k *10;
-float Viscosity = 0.05;
-float beta = 0.00;
+float Viscosity = 0;
+float beta =0.1;
 Camera cam;
 
-int N = 1000;
+int N = 100;
 ArrayList<Particle>  fluid = new ArrayList<Particle>();
 
 PShape groupShape;
@@ -44,6 +44,9 @@ Slider vis;
 
 PFont font; 
 
+int hashN = 200;
+ArrayList<Particle>[] hashTable;
+
 void setup(){
   
   //size(800,500,P3D);
@@ -51,8 +54,8 @@ void setup(){
   cam = new Camera();
   font = loadFont("./data/AppleSDGothicNeo-Heavy-120.vlw"); 
   
-  vis = new Slider("viscosity",-73,-40,0.05);
-  vis.setRange(0,0.05,0.001);
+  vis = new Slider("viscosity",-73,-40,Viscosity);
+  vis.setRange(0,10,0.001);
   textFont(font,3);
   
   int count = 0;
@@ -69,6 +72,9 @@ void setup(){
   }
   
   N = count;
+  
+  hashTable = new ArrayList[hashN];
+  
   
 }
 

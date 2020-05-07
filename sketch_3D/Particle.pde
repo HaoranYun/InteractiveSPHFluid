@@ -25,7 +25,7 @@ class Particle{
     noStroke();
     endShape();
     particleShape.translate(pos.x,pos.y,pos.z); 
-    particleShape.setFill(color(50,150,200));
+    particleShape.setFill(color(200,200,200,100));
     //particleShape.setStroke(color(50,150,200));
     
     neighbors = new  ArrayList<Particle>();
@@ -49,13 +49,13 @@ class Particle{
     if(speed > velMax){
       vel = PVector.mult(vel,0.5);
     }
-    //if(pos.x < -boxW + space/2) force.x -= (pos.x + boxW-space/2);
-    //if(pos.x > boxW-space/2) force.x -= (pos.x - boxW+ space/2);
+    if(pos.x < -boxW + space/2) force.x -= (pos.x + boxW-space/2);
+    if(pos.x > boxW-space/2) force.x -= (pos.x - boxW+ space/2);
     if(checkFloor() && pos.y > -space/2) force.y -= (pos.y + space/2);
     if(checkFloor() && pos.y < -boxW +space/2) force.y -= (pos.y +boxW-space/2);
     
-    //if(pos.z > boxW - space/2) force.z -= (pos.z - boxW+ space/2);
-    //if(pos.z <-boxW + space/2) force.z -= (pos.z + boxW-space/2);
+    if(pos.z > boxW - space/2) force.z -= (pos.z - boxW+ space/2);
+    if(pos.z <-boxW + space/2) force.z -= (pos.z + boxW-space/2);
     
 
     PVector trans =  PVector.sub(pos,prevPos);

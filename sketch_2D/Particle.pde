@@ -12,7 +12,7 @@ class Particle{
   float pressure_near;
   PVector force;
   
-  
+  boolean newAdded = false;
   
   Particle(float x, float y){
     pos= new PVector(x,y);
@@ -39,14 +39,17 @@ class Particle{
     pos.add(vel);
     pos.add(force);
     
-    force = new PVector(0,-G);
+    
+    force = new PVector(0,-G*mass);
     
     vel = PVector.sub(pos,prevPos);
     float velMax = 2;
     float speed = vel.mag();
     if(speed > velMax*velMax){
-      vel = PVector.mult(vel,0.5);
+      vel = PVector.mult(vel,0.3);
     }
+    
+    checkBoard();
     if(pos.x < 50) force.x -= (pos.x -50)/10;
     if(pos.x > width-50) force.x -= (pos.x -width +50)/10;
     if(pos.y >height -50) force.y -= (pos.y -height +50)/10;
@@ -55,11 +58,23 @@ class Particle{
     if(pos.y > height){
       println(force);
     }
+    
     PVector trans =  PVector.sub(pos,prevPos);
     particleShape.setFill(color(50,150,trans.mag()*20+150,200));
-    particleShape.translate(trans.x,trans.y);  
+    particleShape.translate(trans.x,trans.y);
+    
+    
+    hashTable[hashBucket(pos.x,pos.y)].add(this);
+    
   }
   
+  void checkBoard(){
+    
+    if(newAdded && pos.x > bd.posx && pos.x < bd.posx+bd.w && pos.y > bd.posy - space && pos.y < bd.posy + space ) force.y -= (pos.y - bd.posy +space)/10;
+      
+  }
+  
+
   
   
 }
