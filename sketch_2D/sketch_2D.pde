@@ -1,9 +1,9 @@
-import controlP5.*;
-ControlP5 cp5;
-Slider abc;
+
+import java.util.*; 
+
 
 float G = -0.01; // -0.05
-float NeighborRadius = 30;
+int NeighborRadius = 30;
 float density = 1000;
 float space = 10; // 10 
 float dt = 0.02;
@@ -39,33 +39,31 @@ GUI gui;
 float mass = 5;
 float flux = 4;
 
+
 boolean TAPON = false;
 Board bd;
 int hashN = 200;
-ArrayList<Particle>[] hashTable;
+ArrayList<Integer>[] hashTable;
 int iter = 0;
 
 
-int p0 = 5801;
-int p1 = 2503;
+
 void setup(){
   
   size(800,500,P2D);
-  cp5 = new ControlP5(this);
 
   tapImg = loadImage("tap.png");
   
   gui = new GUI();
   bd = new Board(width-200,200);
   
-  int count = 0;
   groupShape = createShape(PShape.GROUP);
   
   resetWaterBall();
  
   hashTable= new ArrayList[hashN];
   for(int i = 0; i < hashN; i ++){
-    hashTable[i] = new ArrayList<Particle>();
+    hashTable[i] = new ArrayList<Integer>();
   }
   
 }
@@ -85,8 +83,9 @@ void draw(){
     for(int i = 0; i < fluid.size(); i++){
       fluid.get(i).Update();
     }
-  
-    findNeighbors();
+    
+    if(gui.hashCheckBox.isChecked) findNeighborsHash();
+    else findNeighbors();
     GetPressure();
     GetPressureForce();
     GetViscosity();
@@ -122,21 +121,23 @@ void draw(){
   
    //40 40 1.5
   if(TAPON && iter%30 == 0){
+   int count = fluid.size();
    for(int i = 0; i < 2; i ++){
-    for(int j = 0; j < flux/2; j ++){
+    for(int j = 0; j < flux; j ++){
       float x = width -120 + i*space*1.2;
       float y = 90 + j*space*1.2;
-      Particle curr = new Particle(x,y);  
+      Particle curr = new Particle(x,y,count);  
       fluid.add(curr);
       groupShape.addChild(curr.particleShape);
       curr.newAdded = true;
+      count ++;
     }
    }
   }
   
   // if particle number is over flow 
   
-  if(fluid.size() > 1500){
+  if(fluid.size() > 3000){
     TAPON = false;
     gui.tapCheckBox.isChecked = false;
   }
@@ -176,6 +177,7 @@ void findNeighbors(){
     
     for(int j = 0; j < i; j ++){
       Particle other = fluid.get(j);
+   
       float dist = PVector.sub(curr.pos,other.pos).mag();
       if(dist < NeighborRadius){
         len = dist;
@@ -192,13 +194,71 @@ void findNeighbors(){
         curr.neighbors_q.add(q);
       }
     }
-    
+    //println(curr.neighbors.size());
     curr.rho += d;
     curr.rho_near += dn;
    
   }
 }
 
+
+void findNeighborsHash(){
+  float d = 0;
+  float dn = 0;
+  float len, q, q2, q3;
+  ArrayList<Integer> temp;
+
+  for(int i = 0; i < fluid.size(); i ++){
+    temp = new ArrayList<Integer>();
+    d = 0;
+    dn = 0;
+    Particle curr = fluid.get(i);
+    
+    curr.neighbors.clear();
+    curr.neighbors_q.clear();
+    curr.rho = 0;
+    curr.rho_near = 0;
+    
+    int maxh = curr.i + curr.j +2;
+    for(int h = curr.i + curr.j -2; h < maxh; h ++ ){
+      int hashH = h % hashN;
+      if(hashH > -1 && hashH < hashN){
+        temp.addAll(hashTable[hashH]);
+      }
+    }
+    
+    //Collections.sort(temp);
+
+    for(int j : temp){
+      Particle other = fluid.get(j);
+      if(j >= curr.id) continue;
+      
+      float dist = PVector.sub(curr.pos,other.pos).mag();
+      if(dist < NeighborRadius){
+
+        len = dist;
+        q = 1- len/NeighborRadius;
+        q2 = q*q;
+        q3 = q*q*q;
+        d += q2;
+        dn += q3;
+        
+        other.rho += q2;
+        other.rho_near += q3;
+        
+        curr.neighbors.add(other);
+        curr.neighbors_q.add(q);
+
+        
+      }
+    }
+
+    curr.rho += d;
+    curr.rho_near += dn;
+  }
+
+  
+}
 
 void GetDensity(){
   
@@ -295,6 +355,9 @@ void drawBlob(){
   loadPixels();
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
+      //if(hashTable[(x%NeighborRadius +y%NeighborRadius)%hashN].size() <30)
+      //{ continue;
+      //}
       int index = x + y * width;
       float sum = 0;
       for (Particle p : fluid) {
@@ -311,19 +374,18 @@ void drawBlob(){
 }
 
 void resetWaterBall(){
+  int count = 0;
   for(int i = 200; i < 400; i += space*1.2){
     for(int j = 200; j < 400; j += space*1.2){
-      Particle curr = new Particle(i,j);  
+
+      Particle curr = new Particle(i,j,count);  
       fluid.add(curr);
       groupShape.addChild(curr.particleShape);
+      count ++;
     }
   }
 }
 
-int hashBucket(float i, float j){
-  int ij = (int)(i / space * p0 + j /space * p1);
-  return ij % hashN;
-}
 
 void keyPressed(){
   if(key == 'p'){
@@ -335,6 +397,7 @@ void mouseReleased(){
   gui.tapCheckBox.released();
   gui.recordCheckBox.released();
   gui.blobCheckBox.released();
+  gui.hashCheckBox.released();
   tempParticles.clear();
 }
 

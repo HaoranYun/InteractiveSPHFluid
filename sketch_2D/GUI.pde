@@ -6,21 +6,24 @@ class GUI{
   CheckBox tapCheckBox;
   CheckBox blobCheckBox;
   CheckBox recordCheckBox;
+  CheckBox hashCheckBox;
   
   GUI(){
-    vis = new Slider("Viscosity",65,105,Viscosity);
+    
+    vis = new Slider("Viscosity",65,130,Viscosity);
     vis.setRange(0,0.05,0.001);
   
-    massSlider = new Slider("Mass",65,130,mass);
+    massSlider = new Slider("Mass",65,155,mass);
     massSlider.setRange(1,10,1);
     
-    fluxSlider= new Slider("Flux",65,155,flux);
+    fluxSlider= new Slider("Flux",65,180,flux);
     fluxSlider.setRange(2,10,2);
     
     tapCheckBox= new CheckBox("Tap On/Off",65,40);
     
     blobCheckBox = new CheckBox("Blob On/Off",65,15);
-
+    
+    hashCheckBox = new CheckBox("Spatial Data Structure",65,90);
     
     recordCheckBox =  new CheckBox("Recording",65,65);
     
@@ -29,10 +32,10 @@ class GUI{
   void Update(){
     //draw panel
     
-    text("Particle Number: "+ fluid.size(),65,200);
+    
     
     fill(50,150,200,200);
-    rect(60,5,150,200,10);
+    rect(60,5,160,220,10);
     
     fluxSlider.listen();
     fluxSlider.update();
@@ -43,6 +46,7 @@ class GUI{
     vis.update();
     Viscosity = vis.value;
     restDensity = Viscosity * 150 + 2;
+    //if(hashCheckBox.isChecked) mass = mass*4;
   
     tapCheckBox.listen();
     tapCheckBox.update();
@@ -59,7 +63,14 @@ class GUI{
   
     mass = massSlider.value;
     
-   
+    hashCheckBox.listen();
+    hashCheckBox.update();
+    
+    fill(255);
+    text("Particle Number: "+ fluid.size(),65,220);
+    text("Frame Rate: "+ frameRate,65,205);
+    
+
     
   }
    

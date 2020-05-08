@@ -49,13 +49,13 @@ class Particle{
     if(speed > velMax){
       vel = PVector.mult(vel,0.5);
     }
-    if(pos.x < -boxW + space/2) force.x -= (pos.x + boxW-space/2);
-    if(pos.x > boxW-space/2) force.x -= (pos.x - boxW+ space/2);
-    if(checkFloor() && pos.y > -space/2) force.y -= (pos.y + space/2);
-    if(checkFloor() && pos.y < -boxW +space/2) force.y -= (pos.y +boxW-space/2);
+    //if(pos.x < -boxW + space/2) force.x -= (pos.x + boxW-space/2)*2;
+    //if(pos.x > boxW-space/2) force.x -= (pos.x - boxW+ space/2)*2;
+    if(checkFloor() && pos.y > -space/2  && pos.y < 5- space/2) force.y -= (pos.y + space/2);
+    //if(checkFloor() && pos.y < -boxW +space/2) force.y -= (pos.y +boxW-space/2);
     
-    if(pos.z > boxW - space/2) force.z -= (pos.z - boxW+ space/2);
-    if(pos.z <-boxW + space/2) force.z -= (pos.z + boxW-space/2);
+    //if(pos.z > boxW - space/2) force.z -= (pos.z - boxW+ space/2)*2;
+    //if(pos.z <-boxW + space/2) force.z -= (pos.z + boxW-space/2)*2;
     
 
     PVector trans =  PVector.sub(pos,prevPos);
@@ -67,6 +67,7 @@ class Particle{
     pos.z < boxW - space/2 && pos.z >-boxW + space/2)
     return true;
     else return false;
+    //return true;
   }
   
   

@@ -14,7 +14,12 @@ class Particle{
   
   boolean newAdded = false;
   
-  Particle(float x, float y){
+  int hashValue;
+  int i,j;
+  
+  int id;
+  Particle(float x, float y, int ID){
+    id = ID;
     pos= new PVector(x,y);
     prevPos = pos;
     vel = new PVector(0,0);
@@ -63,8 +68,10 @@ class Particle{
     particleShape.setFill(color(50,150,trans.mag()*20+150,200));
     particleShape.translate(trans.x,trans.y);
     
-    
-    hashTable[hashBucket(pos.x,pos.y)].add(this);
+    i =(int) (pos.x/NeighborRadius);
+    j = (int) (pos.y/NeighborRadius);
+    hashValue = (i + j) % hashN;
+    if(hashValue > 0)hashTable[hashValue].add(this.id);
     
   }
   
@@ -77,4 +84,13 @@ class Particle{
 
   
   
+}
+
+
+class MyCompare implements Comparator<Particle>{
+    public int compare(Particle m1, Particle m2) {
+        float f1 = m1.id;
+        float f2 = m2.id;
+        return Float.compare(f1,f2);
+    }  
 }
