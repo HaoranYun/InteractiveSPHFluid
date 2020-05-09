@@ -17,7 +17,7 @@ class GUI{
     massSlider.setRange(1,10,1);
     
     fluxSlider= new Slider("Flux",65,180,flux);
-    fluxSlider.setRange(2,10,2);
+    fluxSlider.setRange(2,5,1);
     
     tapCheckBox= new CheckBox("Tap On/Off",65,40);
     

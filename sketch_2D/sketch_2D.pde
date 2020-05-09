@@ -119,19 +119,19 @@ void draw(){
   vertex(width - 120, 90, 0, tapImg.height);
   endShape();
   
-   //40 40 1.5
-  if(TAPON && iter%30 == 0){
+   //40 40 1.5  iter30
+  if(TAPON && iter%10 == 0){
    int count = fluid.size();
-   for(int i = 0; i < 2; i ++){
-    for(int j = 0; j < flux; j ++){
-      float x = width -120 + i*space*1.2;
-      float y = 90 + j*space*1.2;
+   for(int i = 0; i < flux; i ++){
+    //for(int j = 0; j < flux; j ++){
+      float x = width -120 + i*space*1.2*(0.5-Viscosity)/0.5;
+      float y = 80;
       Particle curr = new Particle(x,y,count);  
       fluid.add(curr);
       groupShape.addChild(curr.particleShape);
       curr.newAdded = true;
       count ++;
-    }
+    //}
    }
   }
   
