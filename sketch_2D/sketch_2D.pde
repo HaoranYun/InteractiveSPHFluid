@@ -50,7 +50,7 @@ int iter = 0;
 
 void setup(){
   
-  size(800,500,P2D);
+  size(800,450,P2D);
 
   tapImg = loadImage("tap.png");
   

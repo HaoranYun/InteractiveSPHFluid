@@ -33,7 +33,7 @@ class GUI{
     
     
     hashCheckBox = new CheckBox("Spatial Data Structure",startX+10,startH+85);
-    hashCheckBox.isChecked =true;
+    //hashCheckBox.isChecked =true;
     
     recordCheckBox = new CheckBox("Recording",startX+10,startH+100);
     
@@ -43,7 +43,7 @@ class GUI{
   void Update(){
     //draw panel
      
-    fill(50,50,50,50);
+    fill(100,100,100,150);
     pushMatrix();
     translate(0,0,z);
     rect(startX,startH,W,H,10);
@@ -74,9 +74,9 @@ class GUI{
     recordCheckBox.update();
     
     fill(255);
-    text("Particle Number: "+ fluid.size(),startX+10,startH + H -10,z);
+    text("Particle Number: "+ fluid.size(),startX+10,startH + H -30,z);
     text("Frame Rate: "+ frameRate,startX+10,startH + H -20,z);
-    
+    text("Press 'p' to pause/start.",startX+10,startH + H -10,z);
 
     
   }

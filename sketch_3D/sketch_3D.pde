@@ -41,7 +41,7 @@ float flux = 2;
 
 boolean TAPON = false;
 Board bd;
-int hashN = 200;
+int hashN = 300;
 ArrayList<Integer>[] hashTable;
 int iter = 0;
 
@@ -50,11 +50,11 @@ PFont font;
 float z = 600;
 void setup(){
   
-  size(1000,600,P3D);
+  size(800,450,P3D);
   cam = new Camera();
   tapImg = loadImage("grid.jpg");
   font = loadFont("./data/AppleSDGothicNeo-Heavy-120.vlw"); 
-  textFont(font,7);
+  textFont(font,8);
   gui = new GUI();
   bd = new Board(100,600,100);
   
@@ -221,9 +221,9 @@ void findNeighborsHash(){
     curr.neighbors_q.clear();
     curr.rho = 0;
     curr.rho_near = 0;
-    
-    int maxh = curr.i + curr.j +3;
-    for(int h = curr.i + curr.j -3; h < maxh; h ++ ){
+
+    int maxh = curr.i + curr.j +curr.k+3;
+    for(int h = curr.i + curr.j +curr.k-3; h < maxh; h ++ ){
       int hashH = h % hashN;
       if(hashH > -1 && hashH < hashN){
         temp.addAll(hashTable[hashH]);

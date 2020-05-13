@@ -92,7 +92,7 @@ class Particle{
     i =(int) (pos.x/NeighborRadius);
     j = (int) (pos.y/NeighborRadius);
     k = (int)(pos.z/NeighborRadius);
-    hashValue = (i + j) % hashN;
+    hashValue = (i + j + k) % hashN;
     if(hashValue > 0)hashTable[hashValue].add(this.id);
     
     
